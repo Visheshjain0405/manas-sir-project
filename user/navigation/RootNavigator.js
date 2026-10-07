@@ -27,7 +27,8 @@ export default function RootNavigator() {
     );
   }
 
-  const initialRouteName = token && user ? 'MainTabs' : 'Login';
+  const hasSavedAddress = user?.address?.pincode || user?.addressDetails?.pincode;
+  const initialRouteName = token && user ? (hasSavedAddress ? 'MainTabs' : 'LocationSetup') : 'Login';
 
   return (
     <Stack.Navigator
@@ -44,7 +45,12 @@ export default function RootNavigator() {
             onNavigateToSignup={() => props.navigation.navigate('Signup')}
             onLoginSuccess={async (userData, newToken) => {
               await login(newToken, userData);
-              props.navigation.navigate('LocationSetup');
+              const addr = userData.address || userData.addressDetails;
+              if (addr?.street || addr?.pincode || addr?.houseNo) {
+                props.navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+              } else {
+                props.navigation.navigate('LocationSetup');
+              }
             }}
           />
         )}
@@ -57,7 +63,12 @@ export default function RootNavigator() {
             onNavigateToLogin={() => props.navigation.navigate('Login')}
             onSignupSuccess={async (userData, newToken) => {
               await login(newToken, userData);
-              props.navigation.navigate('LocationSetup');
+              const addr = userData.address || userData.addressDetails;
+              if (addr?.street || addr?.pincode || addr?.houseNo) {
+                props.navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+              } else {
+                props.navigation.navigate('LocationSetup');
+              }
             }}
           />
         )}

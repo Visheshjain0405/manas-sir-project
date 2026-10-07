@@ -6,9 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const DEV_MACHINE_IP = '10.146.87.96';
 const PORT = '5001';
 
-export const API_BASE_URL = Platform.OS === 'android'
-  ? `http://${DEV_MACHINE_IP}:${PORT}/api`
-  : `http://localhost:${PORT}/api`;
+export const API_BASE_URL = 'https://manas-sir-project.onrender.com/api';
 
 console.log(API_BASE_URL);
 

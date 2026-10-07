@@ -111,6 +111,7 @@ export const verifyOtp = async (req, res) => {
         isVerified: user.isVerified,
         location: user.location,
         addressDetails: user.addressDetails,
+        address: user.addressDetails || null,
         savedAddresses: user.savedAddresses,
       },
     });
@@ -228,7 +229,10 @@ export const getMe = async (req, res) => {
     const user = await User.findById(req.user._id).select('-otp -otpExpires');
     return res.status(200).json({
       success: true,
-      user,
+      user: {
+        ...user._doc,
+        address: user.addressDetails || null,
+      },
     });
   } catch (error) {
     console.error('Error in getMe:', error);

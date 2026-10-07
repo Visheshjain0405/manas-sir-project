@@ -259,9 +259,9 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
             {/* Street Address */}
             <View>
               <Text className="text-xs font-semibold text-[#0f1729] uppercase tracking-wider mb-1">
-                House / Street Address
+                House / Street Address <Text className="text-[#ef4444]">*</Text>
               </Text>
-              <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3.5 py-2.5 shadow-sm">
+              <View className={`flex-row items-center bg-white border rounded-xl px-3.5 py-2.5 shadow-sm ${streetAddress.length > 0 && streetAddress.trim().length < 5 ? 'border-[#ef4444]' : 'border-gray-200'}`}>
                 <MapPin size={18} color="#6b7280" />
                 <TextInput
                   value={streetAddress}
@@ -271,6 +271,9 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
                   className="flex-1 ml-2.5 text-sm text-[#0f1729]"
                 />
               </View>
+              {streetAddress.length > 0 && streetAddress.trim().length < 5 && (
+                <Text className="text-[#ef4444] text-xs mt-1">Address must be at least 5 characters</Text>
+              )}
             </View>
 
             {/* Apt / Suite / Unit */}
@@ -327,11 +330,11 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
             {/* City & State Selector */}
             <View className="mt-2.5">
               <Text className="text-xs font-semibold text-[#0f1729] uppercase tracking-wider mb-1">
-                City & State
+                City & State <Text className="text-[#ef4444]">*</Text>
               </Text>
               <TouchableOpacity
                 onPress={() => setShowCityModal(true)}
-                className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3.5 py-2.5 shadow-sm"
+                className={`flex-row items-center bg-white border rounded-xl px-3.5 py-2.5 shadow-sm ${cityState.length > 0 && cityState.trim().length < 2 ? 'border-[#ef4444]' : 'border-gray-200'}`}
               >
                 <Search size={18} color="#6b7280" />
                 <Text
@@ -342,15 +345,18 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
                   {cityState || 'Select city & state...'}
                 </Text>
               </TouchableOpacity>
+              {cityState.length > 0 && cityState.trim().length < 2 && (
+                <Text className="text-[#ef4444] text-xs mt-1">City must be at least 2 characters</Text>
+              )}
             </View>
 
             {/* Zip / Postal Code & Country Row */}
             <View className="flex-row space-x-3 gap-3 mt-2.5">
               <View className="flex-1">
                 <Text className="text-xs font-semibold text-[#0f1729] uppercase tracking-wider mb-1">
-                  Zip / Postal Code
+                  Zip / Postal Code <Text className="text-[#ef4444]">*</Text>
                 </Text>
-                <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-3.5 py-2.5 shadow-sm">
+                <View className={`flex-row items-center bg-white border rounded-xl px-3.5 py-2.5 shadow-sm ${zipCode.length > 0 && !/^[1-9][0-9]{5}$/.test(zipCode) ? 'border-[#ef4444]' : 'border-gray-200'}`}>
                   <TextInput
                     value={zipCode}
                     onChangeText={setZipCode}
@@ -358,8 +364,12 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
                     placeholderTextColor="#9ca3af"
                     keyboardType="number-pad"
                     className="flex-1 text-sm text-[#0f1729]"
+                    maxLength={6}
                   />
                 </View>
+                {zipCode.length > 0 && !/^[1-9][0-9]{5}$/.test(zipCode) && (
+                  <Text className="text-[#ef4444] text-xs mt-1">Must be exactly 6 digits</Text>
+                )}
               </View>
 
               <View className="flex-1">
@@ -444,9 +454,9 @@ export default function LocationSetupScreen({ userToken, onCompleteSetup }) {
           {/* Complete Setup Action Button */}
           <TouchableOpacity
             onPress={handleSaveLocation}
-            disabled={savingLocation}
-            style={{ backgroundColor: '#0f1729' }}
-            className="bg-[#0f1729] py-3.5 rounded-xl flex-row items-center justify-center shadow-md active:opacity-90 mt-2 mb-6"
+            disabled={savingLocation || streetAddress.trim().length < 5 || cityState.trim().length < 2 || !/^[1-9][0-9]{5}$/.test(zipCode) || !coords.latitude || !coords.longitude}
+            style={{ backgroundColor: (streetAddress.trim().length < 5 || cityState.trim().length < 2 || !/^[1-9][0-9]{5}$/.test(zipCode) || !coords.latitude) ? '#9ca3af' : '#0f1729' }}
+            className={`py-3.5 rounded-xl flex-row items-center justify-center shadow-md active:opacity-90 mt-2 mb-6`}
           >
             {savingLocation ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
