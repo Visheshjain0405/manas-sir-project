@@ -56,7 +56,7 @@ export const acceptOffer = async (req, res) => {
     }
 
     // 3. Ensure the requesting user owns the service request
-    if (serviceRequest.user.toString() !== userId.toString()) {
+    if (serviceRequest.customer.toString() !== userId.toString()) {
       return res.status(403).json({ success: false, message: 'Unauthorized to accept this offer' });
     }
 
@@ -113,5 +113,61 @@ export const acceptOffer = async (req, res) => {
   } catch (error) {
     console.error('Error accepting offer:', error);
     res.status(500).json({ success: false, message: 'Failed to accept offer' });
+  }
+};
+
+/**
+ * @desc    Submit a new bid for a service request
+ * @route   POST /api/offers
+ * @access  Private (Vendor only)
+ */
+export const submitOffer = async (req, res) => {
+  try {
+    const { serviceRequest, bidAmount, estimatedTime, message } = req.body;
+    
+    // Ensure the service request exists and is pending
+    const request = await ServiceRequest.findById(serviceRequest);
+    if (!request || request.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Invalid or closed service request' });
+    }
+
+    const offer = await Offer.findOneAndUpdate(
+      { serviceRequest: req.body.serviceRequest, vendor: req.user._id },
+      {
+        bidAmount,
+        estimatedTime,
+        message: message || '',
+        status: 'pending',
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ).populate('vendor', 'businessName ownerName rating completedJobsCount mobileNumber profileImage');
+
+    const io = req.app.get('socketio');
+    if (io) {
+      io.to(`request_${serviceRequest}`).emit('newOffer', offer);
+    }
+
+    res.status(201).json({ success: true, message: 'Bid submitted successfully', offer });
+  } catch (error) {
+    console.error('Error submitting offer:', error);
+    res.status(500).json({ success: false, message: 'Failed to submit bid' });
+  }
+};
+
+/**
+ * @desc    Get all bids submitted by the logged-in vendor
+ * @route   GET /api/offers/my-bids
+ * @access  Private (Vendor only)
+ */
+export const getMyBids = async (req, res) => {
+  try {
+    const offers = await Offer.find({ vendor: req.user._id })
+      .populate('serviceRequest')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, offers });
+  } catch (error) {
+    console.error('Error fetching vendor bids:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch your bids' });
   }
 };

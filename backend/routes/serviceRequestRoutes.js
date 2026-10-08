@@ -3,17 +3,22 @@ import {
   createServiceRequest,
   getMyRequests,
   getServiceRequestById,
+  getAvailableRequests,
+  getAssignedRequests
 } from '../controllers/serviceRequestController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, protectVendor } from '../middleware/authMiddleware.js';
 import { uploadMiddleware } from '../utils/cloudinaryUpload.js';
 
 const router = express.Router();
 
-// Apply JWT protection to all service request routes
-router.use(protect);
+// Customer routes
+router.post('/', protect, uploadMiddleware.array('images', 5), createServiceRequest);
+router.get('/my-requests', protect, getMyRequests);
+// Vendor routes
+router.get('/available', protectVendor, getAvailableRequests);
+router.get('/assigned', protectVendor, getAssignedRequests);
 
-router.post('/', uploadMiddleware.array('images', 5), createServiceRequest);
-router.get('/my-requests', getMyRequests);
-router.get('/:id', getServiceRequestById);
+// Dynamic parameter route must be last
+router.get('/:id', protect, getServiceRequestById);
 
 export default router;

@@ -70,7 +70,7 @@ export default function CategoriesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }} className="flex-1 bg-[#f6f7f8]">
+    <SafeAreaView style={{ flex: 1 }} className="flex-1 bg-[#f6f7f8]">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Header Bar */}

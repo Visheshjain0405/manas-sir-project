@@ -1,13 +1,15 @@
 import express from 'express';
-import { getOffersByRequestId, acceptOffer } from '../controllers/offerController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { getOffersByRequestId, acceptOffer, submitOffer, getMyBids } from '../controllers/offerController.js';
+import { protect, protectVendor } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Apply JWT protection to all offer routes
-router.use(protect);
+// Vendor Routes
+router.post('/', protectVendor, submitOffer);
+router.get('/my-bids', protectVendor, getMyBids);
 
-router.get('/request/:requestId', getOffersByRequestId);
-router.put('/:offerId/accept', acceptOffer);
+// Customer Routes
+router.get('/request/:requestId', protect, getOffersByRequestId);
+router.put('/:offerId/accept', protect, acceptOffer);
 
 export default router;

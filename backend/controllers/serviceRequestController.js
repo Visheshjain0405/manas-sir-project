@@ -46,7 +46,7 @@ export const createServiceRequest = async (req, res) => {
     }
 
     const newRequest = new ServiceRequest({
-      user: req.user._id,
+      customer: req.user._id,
       category: category.trim(),
       subCategory: subCategory ? subCategory.trim() : '',
       title: title ? title.trim() : `${category.trim()} Service Request`,
@@ -74,7 +74,7 @@ export const createServiceRequest = async (req, res) => {
     await newRequest.save();
 
     // Populate user info for broadcasting
-    const populatedRequest = await ServiceRequest.findById(newRequest._id).populate('user', 'name phone location');
+    const populatedRequest = await ServiceRequest.findById(newRequest._id).populate('customer', 'name phone location');
 
     // Broadcast WebSocket event to pincode room using app Socket.IO instance
     const io = req.app.get('socketio');
@@ -103,7 +103,7 @@ export const createServiceRequest = async (req, res) => {
 export const getMyRequests = async (req, res) => {
   try {
     const { status } = req.query;
-    let filter = { user: req.user._id };
+    let filter = { customer: req.user._id };
 
     if (status === 'active') {
       filter.status = { $in: ['pending', 'accepted', 'in_progress', 'work_started'] };
@@ -136,7 +136,7 @@ export const getMyRequests = async (req, res) => {
 export const getServiceRequestById = async (req, res) => {
   try {
     const request = await ServiceRequest.findById(req.params.id)
-      .populate('user', 'name phone email')
+      .populate('customer', 'name phone email')
       .populate('assignedVendor', 'name businessName ownerName phone mobileNumber rating profilePic');
 
     if (!request) {
@@ -144,7 +144,7 @@ export const getServiceRequestById = async (req, res) => {
     }
 
     // Verify ownership
-    if (request.user._id.toString() !== req.user._id.toString()) {
+    if (request.customer._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized to view this request' });
     }
 
@@ -155,5 +155,57 @@ export const getServiceRequestById = async (req, res) => {
   } catch (error) {
     console.error('Error in getServiceRequestById:', error);
     return res.status(500).json({ success: false, message: 'Server error fetching request details' });
+  }
+};
+
+/**
+ * @desc    Get available service requests matching vendor's pincodes and category
+ * @route   GET /api/service-requests/available
+ * @access  Private (Vendor)
+ */
+export const getAvailableRequests = async (req, res) => {
+  try {
+    const vendor = req.vendor; // Populated by protectVendor middleware
+    
+    // Find requests that are pending, in the vendor's pincodes, and matching category
+    const requests = await ServiceRequest.find({
+      status: 'pending',
+      category: vendor.category,
+      'address.pincode': { $in: vendor.pincodes }
+    }).sort({ createdAt: -1 }).populate('customer', 'name profileImage');
+    
+    return res.status(200).json({
+      success: true,
+      count: requests.length,
+      requests
+    });
+  } catch (error) {
+    console.error('Error in getAvailableRequests:', error);
+    return res.status(500).json({ success: false, message: 'Server error fetching available requests' });
+  }
+};
+
+/**
+ * @desc    Get service requests assigned to the vendor
+ * @route   GET /api/service-requests/assigned
+ * @access  Private (Vendor)
+ */
+export const getAssignedRequests = async (req, res) => {
+  try {
+    const vendor = req.vendor;
+    
+    const requests = await ServiceRequest.find({
+      assignedVendor: vendor._id,
+      status: { $in: ['accepted', 'in_progress', 'work_started'] }
+    }).sort({ createdAt: -1 }).populate('customer', 'name phone location address');
+    
+    return res.status(200).json({
+      success: true,
+      count: requests.length,
+      requests
+    });
+  } catch (error) {
+    console.error('Error in getAssignedRequests:', error);
+    return res.status(500).json({ success: false, message: 'Server error fetching assigned requests' });
   }
 };

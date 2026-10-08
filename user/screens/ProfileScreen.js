@@ -76,9 +76,14 @@ export default function ProfileScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity
-          onPress={logout}
+          onPress={async () => {
+            await logout();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }}
           className="bg-white rounded-2xl border border-red-100 p-4 flex-row items-center justify-center mb-10 shadow-sm"
         >
           <LogOut size={20} color="#ef4444" className="mr-2" />

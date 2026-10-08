@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const serviceRequestSchema = new mongoose.Schema(
   {
-    user: {
+    customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
@@ -80,7 +80,7 @@ const serviceRequestSchema = new mongoose.Schema(
     },
     assignedVendor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Vendor',
       default: null,
     },
     finalAmount: {

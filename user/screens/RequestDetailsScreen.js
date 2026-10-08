@@ -132,7 +132,7 @@ export default function RequestDetailsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+      style={{ flex: 1 }}
       className="flex-1 bg-[#f6f7f8]"
     >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />

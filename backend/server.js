@@ -63,8 +63,11 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+import vendorAuthRoutes from './routes/vendorAuthRoutes.js';
+
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/vendor/auth', vendorAuthRoutes);
 app.use('/api/service-requests', serviceRequestRoutes);
 app.use('/api/offers', offerRoutes);
 
